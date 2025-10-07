@@ -1,13 +1,14 @@
-FROM maven:3.9.4-amazoncorretto
+FROM maven:3.9.4-amazoncorretto as builder
 
 WORKDIR /app
 COPY ./pom.xml ./
 RUN mvn dependency:resolve
 COPY . .
 RUN mvn package
-
-FROM openjdk:latest
-WORKDIR /app
-COPY --from=builder /app/target/EmployeeService.jar .
-CMD ["java","-jar","EmployeeService.jar"]
+VOLUME ["/app/data"]
+FROM tomcat:9.0
+# WORKDIR /app
+COPY --from=builder /app/target/maven-web-application.war /usr/local/tomcat/webapps/ROOT.war
+EXPOSE 8080
+# CMD ["java","-jar","EmployeeService.jar"]
 
